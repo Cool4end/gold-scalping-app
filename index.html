@@ -13,7 +13,10 @@
       padding: 20px;
       direction: rtl;
     }
-    h1 { text-align: center; color: #f6c343; }
+    h1 {
+      text-align: center;
+      color: #f6c343;
+    }
     label, input, button {
       display: block;
       width: 100%;
@@ -40,16 +43,16 @@
   </style>
 </head>
 <body>
-  <h1>حاسبة سكالبينج الذهب</h1>
+  <h1>📊 حاسبة سكالبينج الذهب</h1>
 
-  <label for="balance">الرصيد ($):</label>
-  <input type="number" id="balance" value="40">
+  <label for="balance">💰 الرصيد ($):</label>
+  <input id="balance" type="number" value="40">
 
-  <label for="lot">اللوت (مثال: 0.01):</label>
-  <input type="number" step="0.01" id="lot" value="0.01">
+  <label for="lot">📏 حجم اللوت:</label>
+  <input id="lot" type="number" step="0.01" value="0.01">
 
-  <label for="stopLoss">الستوب (نقاط):</label>
-  <input type="number" id="stopLoss" value="300">
+  <label for="stopLoss">⛔ الستوب لوس (نقاط):</label>
+  <input id="stopLoss" type="number" value="300">
 
   <button onclick="calculate()">احسب الآن</button>
 
@@ -58,11 +61,20 @@
   <script>
     async function fetchGoldPrice() {
       try {
-        const res = await fetch("https://api.metals.live/v1/spot/gold");
+        // المصدر الأساسي
+        const res = await fetch("https://api.exrienz.com/xau");
         const data = await res.json();
-        return parseFloat(data[0]); // السعر اللحظي بالدولار للأونصة
+        return parseFloat(data.price);
       } catch (err) {
-        return null;
+        console.warn("❗فشل المصدر الأول، نحاول المصدر الثاني...");
+        try {
+          // المصدر الاحتياطي
+          const res = await fetch("https://api.metals.dev/v1/spot/gold");
+          const data = await res.json();
+          return parseFloat(data.gold.usd);
+        } catch (e) {
+          return null;
+        }
       }
     }
 
@@ -73,7 +85,7 @@
       const price = await fetchGoldPrice();
 
       if (!price) {
-        document.getElementById("result").innerHTML = "<span style='color:red'>❌ فشل في جلب السعر اللحظي.</span>";
+        document.getElementById("result").innerHTML = "<span style='color:red'>❌ فشل في جلب السعر اللحظي من كل المصادر.</span>";
         return;
       }
 
@@ -89,10 +101,10 @@
       }
 
       document.getElementById("result").innerHTML = `
-        ✅ السعر اللحظي للذهب: <b>${price}</b><br>
-        🔥 خسارة محتملة: <b>${loss.toFixed(2)}$</b><br>
-        📉 نسبة الخسارة من الرصيد: <b>${percentLoss}%</b><br>
-        💡 النتيجة: <b>${advice}</b>
+        ✅ <b>السعر اللحظي للذهب:</b> ${price} $<br>
+        🔥 <b>الخسارة المحتملة:</b> ${loss.toFixed(2)} $<br>
+        📉 <b>نسبة الخسارة من الرصيد:</b> ${percentLoss}%<br>
+        💡 <b>النتيجة:</b> ${advice}
       `;
     }
   </script>
