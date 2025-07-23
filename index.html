@@ -2,69 +2,102 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <title>حاسبة سكالبينج الذهب</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { font-family: Arial, sans-serif; background: #1c1c1c; color: #fff; padding: 20px; direction: rtl; }
-        h1 { text-align: center; color: #f6c343; }
-        label, input, button { display: block; width: 100%; margin: 10px 0; font-size: 18px; }
-        input, button { padding: 10px; border-radius: 5px; border: none; }
-        button { background-color: #f6c343; color: #000; font-weight: bold; cursor: pointer; }
-        .result { margin-top: 20px; background: #333; padding: 15px; border-radius: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>حاسبة سكالبينج الذهب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #1c1c1c;
+      color: #fff;
+      padding: 20px;
+      direction: rtl;
+    }
+    h1 {
+      text-align: center;
+      color: #f6c343;
+    }
+    label, input, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    input, button {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: #f6c343;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      background: #333;
+      padding: 15px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
-    <h1>حاسبة سكالبينج الذهب</h1>
-    <label for="balance">الرصيد ($):</label>
-    <input type="number" id="balance" value="40">
+  <h1>حاسبة سكالبينج الذهب</h1>
 
-    <label for="lot">اللوت (مثال: 0.01):</label>
-    <input type="number" step="0.01" id="lot" value="0.01">
+  <label for="balance">الرصيد ($):</label>
+  <input type="number" id="balance" value="40">
 
-    <label for="stopLoss">الستوب (نقاط):</label>
-    <input type="number" id="stopLoss" value="300">
+  <label for="lot">اللوت (مثال: 0.01):</label>
+  <input type="number" step="0.01" id="lot" value="0.01">
 
-    <button onclick="calculate()">احسب الآن</button>
-    <div class="result" id="result"></div>
+  <label for="stopLoss">الستوب (نقاط):</label>
+  <input type="number" id="stopLoss" value="300">
 
-    <script>
-        async function fetchPrice() {
-            try {
-                const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=gold&vs_currencies=usd");
-                const data = await res.json();
-                return parseFloat(data.gold.usd);
-            } catch {
-                return null;
-            }
-        }
+  <button onclick="calculate()">احسب الآن</button>
 
-        async function calculate() {
-            const balance = parseFloat(document.getElementById("balance").value);
-            const lot = parseFloat(document.getElementById("lot").value);
-            const stopLoss = parseFloat(document.getElementById("stopLoss").value);
-            const price = await fetchPrice();
+  <div class="result" id="result"></div>
 
-            if (!price) {
-                document.getElementById("result").innerHTML = "<span style='color:red'>❌ فشل في جلب السعر اللحظي.</span>";
-                return;
-            }
+  <script>
+    async function fetchGoldPrice() {
+      try {
+        const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=tether-gold&vs_currencies=usd");
+        const data = await response.json();
+        return parseFloat(data["tether-gold"].usd); // هذا السعر بالدولار
+      } catch (error) {
+        return null;
+      }
+    }
 
-            const pipValue = lot * 100;
-            const loss = pipValue * stopLoss;
-            const percentLoss = ((loss / balance) * 100).toFixed(2);
+    async function calculate() {
+      const balance = parseFloat(document.getElementById("balance").value);
+      const lot = parseFloat(document.getElementById("lot").value);
+      const stopLoss = parseFloat(document.getElementById("stopLoss").value);
+      const price = await fetchGoldPrice();
 
-            let advice = (loss > balance) ?
-                "⚠️ الصفقة خطيرة جدًا على هذا الرصيد!" :
-                "✅ الصفقة ممكنة بهذا الرصيد.";
+      if (!price) {
+        document.getElementById("result").innerHTML = "<span style='color:red'>❌ فشل في جلب السعر اللحظي.</span>";
+        return;
+      }
 
-            document.getElementById("result").innerHTML = `
-                ✅ السعر اللحظي للذهب: <b>${price}</b><br>
-                🔥 خسارة محتملة: <b>${loss.toFixed(2)}$</b><br>
-                📉 نسبة الخسارة من الرصيد: <b>${percentLoss}%</b><br>
-                💡 النتيجة: <b>${advice}</b>
-            `;
-        }
-    </script>
+      const pipValue = lot * 100; // قيمة النقطة لكل لوت قياسي في الذهب
+      const loss = pipValue * stopLoss;
+      const percentLoss = ((loss / balance) * 100).toFixed(2);
+
+      let advice = "";
+      if (loss > balance) {
+        advice = "⚠️ الصفقة خطيرة جدًا على هذا الرصيد!";
+      } else {
+        advice = "✅ الصفقة ممكنة بهذا الرصيد.";
+      }
+
+      document.getElementById("result").innerHTML = `
+        ✅ <b>السعر اللحظي للذهب:</b> ${price} USD<br>
+        🔥 <b>الخسارة المحتملة:</b> ${loss.toFixed(2)} USD<br>
+        📉 <b>نسبة الخسارة من الرصيد:</b> ${percentLoss}%<br>
+        💡 <b>النتيجة:</b> ${advice}
+      `;
+    }
+  </script>
 </body>
 </html>
