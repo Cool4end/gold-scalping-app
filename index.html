@@ -16,6 +16,7 @@
 </head>
 <body>
     <h1>حاسبة سكالبينج الذهب</h1>
+
     <label for="balance">الرصيد ($):</label>
     <input type="number" id="balance" value="40">
 
@@ -32,9 +33,9 @@
     <script>
         async function fetchPrice() {
             try {
-                const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=XAUUSDT");
+                const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=gold&vs_currencies=usd");
                 const data = await res.json();
-                return parseFloat(data.price);
+                return parseFloat(data.gold.usd);
             } catch (err) {
                 return null;
             }
